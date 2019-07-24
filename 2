@@ -1,0 +1,340 @@
+// код на js
+// божественный объект
+// улучшить: разделить на классы: 
+// Product (_renderItem, _remove, addBigProduct), 
+// DropProduct (_renderDropItem, _removeDrop, addDropProduct),
+// Buttons (_renderBtn,  _renderDropBtn), 
+// Cart (_render, _updateCart, _init, _renderSum, _removeAll),
+// DropCart (_updateDropCart, _renderDropSum, _dropQuantity).
+
+class CartClothes {
+    constructor(source, container = '#details', dropContainer = '#drop-cart') {
+        this.source = source;
+        this.container = container;
+        this.dropContainer = dropContainer;
+        this.countGoods = 0; // Общее кол-во товаров в корзине
+        this.amount = 0; // Общая стоимость товаров
+        this.productItems = []; // Массив с товарами
+        this.curID = 0;
+        this._init(this.source);
+        this._dropQuantity();
+    }
+
+    _renderBtn() {
+        let $btnDiv = $('<div>', {
+            class: 'choice-button'
+        });
+
+        let $clearCartBtn = $('<button/>', {
+            class: 'button-white details__button-white',
+            text: 'clear shopping cart',
+        });
+
+        $btnDiv.appendTo($(this.container));
+        $clearCartBtn.appendTo($($btnDiv));
+        $clearCartBtn.click(() => {
+            this._removeAll();
+        });
+        $btnDiv.append($(`<a class="button-white details__button-white" href="product.html">continue shopping</a>`));
+    }
+
+    _render() {
+        let $productDetailsDiv = $('<div>', {
+            class: 'product-details'
+        });
+        let $productContentLeftDiv = $('<div>', {
+            class: 'product-content-left'
+        });
+        let $productContentRightDiv = $('<div>', {
+            class: 'product-content-right'
+        });
+
+        let $border = $('<div>', {
+            class: 'product-details-border-1'
+        });
+
+        $productDetailsDiv.appendTo($(this.container));
+        $border.appendTo($(this.container));
+        $productContentLeftDiv.appendTo($($productDetailsDiv));
+        $productContentRightDiv.appendTo($($productDetailsDiv));
+
+        $productContentLeftDiv.append($(`<h3 class="product-content-word">Product Details</h3>`));
+        $productContentRightDiv.append($(`<h3 class="product-content-word">Unite Price</h3>`));
+        $productContentRightDiv.append($(`<h3 class="product-content-word">Quantity</h3>`));
+        $productContentRightDiv.append($(`<h3 class="product-content-word">Shipping</h3>`));
+        $productContentRightDiv.append($(`<h3 class="product-content-word">Subtotal</h3>`));
+        $productContentRightDiv.append($(`<h3 class="product-content-word">ACTION</h3>`));
+
+    }
+
+    _renderItem(product) {
+        let $productDetailsDiv = $('<div>', {
+            class: 'product-details plus',
+            'data-product': product.id_product
+        });
+        let $productContentLeftDiv = $('<div>', {
+            class: 'product-content-left'
+        });
+        let $productContentRightDiv = $('<div>', {
+            class: 'product-content-right'
+        });
+        let $clothesTxtDiv = $('<div>', {
+            class: 'clothes-txt'
+        });
+        let $clothesColorP = $('<p>', {
+            class: 'clothes-information',
+            text: 'Color:'
+        });
+        let $clothesSizeP = $('<p>', {
+            class: 'clothes-information',
+            text: 'Size:'
+        });
+
+        let $border = $('<div>', {
+            class: 'product-details-border-1 plus',
+            'data-product': product.id_product
+        });
+
+        let $removeBtn = $('<i>', {
+            class: 'clothes-cancel icon-cancel-circled',
+        });
+
+        $productDetailsDiv.appendTo($(this.container));
+        $border.appendTo($(this.container));
+        $productContentLeftDiv.appendTo($($productDetailsDiv));
+        $productContentRightDiv.appendTo($($productDetailsDiv));
+
+        $productContentLeftDiv.append($(`<a href = "single-page.html"> <img src="${product.product_picture}" alt="${product.product_alt}"></a>`));
+        $clothesTxtDiv.appendTo($productContentLeftDiv);
+        $clothesTxtDiv.append($(`<a href = "single-page.html" class = "clothes-name">${product.product_name}</a>`));
+        $clothesColorP.appendTo($clothesTxtDiv);
+        $clothesColorP.append($(`<span class = "grey">${product.product_color}</span>`));
+        $clothesSizeP.appendTo($clothesTxtDiv);
+        $clothesSizeP.append($(`<span class = "grey">${product.product_size}</span>`));
+
+        $productContentRightDiv.append($(`<p class = "clothes-price">${+product.unite_price}$</p>`));
+        $productContentRightDiv.append($(`<p class = "choose-number">${+product.quantity}</p>`));
+        $productContentRightDiv.append($(`<p class = "clothes-free">${product.shipping}</p>`));
+        $productContentRightDiv.append($(`<p class = "clothes-price all">${product.unite_price * product.quantity}$</p>`));
+        $removeBtn.appendTo($productContentRightDiv);
+        $removeBtn.click(() => {
+            this._remove(product.id_product)
+        });
+    }
+
+    _renderSum() {
+        $('.sub-total').text(`Sub total ${this.amount}`);
+        $('#amount').text(`${this.amount}`);
+    }
+
+    _updateCart(product) {
+        let $container = $(`div[data-product="${product.id_product}"]`);
+        $container.find('.choose-number').text(product.quantity);
+        $container.find('.all').text(`${product.unite_price * product.quantity}$`);
+    }
+
+    _remove(idProduct) {
+        let find = this.productItems.find(product => product.id_product === idProduct);
+        if (find.quantity > 1) {
+            find.quantity--;
+            this._updateCart(find);
+        } else {
+            let $container = $(`div[data-product="${idProduct}"]`);
+            this.productItems.splice(this.productItems.indexOf(find), 1);
+            $container.remove();
+        }
+        this.amount -= find.unite_price;
+        this._renderSum();
+    }
+
+    _removeAll() {
+        let list = document.querySelectorAll('.plus');
+        for (let i = 0; i < list.length; i++) {
+            list[i].remove();
+        }
+        this.productItems = [];
+        this.amount = 0;
+        this._renderSum();
+    }
+
+    _init(source) {
+        this._render();
+        fetch(source)
+            .then(result => result.json())
+            .then(data => {
+                this.curID = data.maxID;
+                for (let product of data.contents) {
+                    this.productItems.push(product);
+                    this._renderItem(product);
+                    this._renderDropItem(product);
+                }
+                this.amount = data.amount;
+                this.countGoods = data.countGoods;
+                this._renderSum();
+                this._renderBtn();
+                this._renderDropBtn();
+                this._renderDropSum();
+            })
+    }
+
+    _renderDropBtn() {
+        let $dropAllDiv = $('<div>', {
+            class: 'drop-all'
+        });
+
+        let $totalAllDiv = $('<div>', {
+            class: 'total-all'
+        });
+
+        $dropAllDiv.appendTo($(this.dropContainer));
+        $totalAllDiv.appendTo($($dropAllDiv));
+        $totalAllDiv.append($('<p class = "cart-total" > TOTAL </p>'));
+        $totalAllDiv.append($('<p class = "cart-total" id = "drop-sum"> $ </p>'));
+        $($dropAllDiv).append($(`<a class="button-white header__button-white" href="checkout.html">Checkout</a>`));
+        $($dropAllDiv).append($(`<a class="button-white header__button-white" href="shopping-cart.html">go&nbsp;to&nbsp;cart</a>`));
+    }
+
+    _renderDropItem(product) {
+        let $cartDiv = $('<div>', {
+            class: 'cart1',
+            'data-product': product.id_product
+        });
+        let $cartTextDiv = $('<div>', {
+            class: 'cart1-2'
+        });
+        let $cartStarsDiv = $('<div>', {
+            class: 'cart1-2-star'
+        });
+
+        let $border = $('<div>', {
+            class: 'cart-line',
+            'data-product': product.id_product
+        });
+        let $priceDiv = $('<div>', {
+            class: 'drop-price',
+        });
+
+        let $removeBtn = $('<i>', {
+            class: 'clothes-cancel icon-cancel-circled',
+        });
+
+        $cartDiv.appendTo($(this.dropContainer));
+        $removeBtn.appendTo($(this.dropContainer));
+        $border.appendTo($(this.dropContainer));
+
+        $cartDiv.append($(`<a href = "single-page.html"> <img src="${product.product_picture}" 
+alt="${product.product_alt}" class ="addImage"></a>`));
+        $cartTextDiv.appendTo($($cartDiv));
+        $cartTextDiv.append($(`<a href = "single-page.html" class = "cart1-2-text">${product.product_name}</a>`));
+        $cartStarsDiv.appendTo($($cartTextDiv));
+        $cartStarsDiv.append($('<i class="icon-star"></i><i class="icon-star"></i><i class="icon-star"></i>' +
+            '<i class="icon-star"></i><i class="icon-star"></i>'));
+        $priceDiv.appendTo($($cartTextDiv));
+        $priceDiv.append($(`<p class = "cart1-2-price" id = "quantity-drop">${+product.quantity} x </p>`));
+        $priceDiv.append($(`<p class = "cart1-2-price" id = "price-drop">${+product.unite_price} $ </p>`));
+        $removeBtn.appendTo($cartDiv);
+        $removeBtn.click(() => {
+            this._removeDrop(product.id_product)
+        });
+    }
+
+    _renderDropSum() {
+        $('#drop-sum').text(`${this.amount}$`);
+        $('#drop-quantity').text(`${this.countGoods}`);
+    }
+
+    _updateDropCart(product) {
+        let $container = $(`div[data-product="${product.id_product}"]`);
+        $container.find('#quantity-drop').text(`${product.quantity}x`);
+        $container.find('#price-drop').text(`${product.unite_price}$`);
+    }
+
+    _removeDrop(idProduct) {
+        let find = this.productItems.find(product => product.id_product === idProduct);
+        if (find.quantity > 1) {
+            find.quantity--;
+            this._updateDropCart(find);
+        } else {
+            let $container = $(`div[data-product="${idProduct}"]`);
+            this.productItems.splice(this.productItems.indexOf(find), 1);
+            $container.remove();
+        }
+        this.amount -= find.unite_price;
+        this.countGoods--;
+        this._renderDropSum();
+    }
+
+    _dropQuantity() {
+        let $quantity = $('<div>', {
+            class: 'guantityDrop',
+            id: 'drop-quantity'
+        });
+        $(document.getElementById('cart-buy')).append($($quantity));
+    }
+
+    addDropProduct(element) {
+        //хранить в кнопке в виде дата-атрибутов
+        let name = element.delegateTarget.children[0].children[1].children[0].innerHTML;
+        let price = element.delegateTarget.children[0].children[1].children[1].innerHTML;
+        let image = element.delegateTarget.children[0].children[0];
+
+        if (image.src === undefined) {
+            image = element.delegateTarget.children[0].children[0].children[0];
+        };
+        //поиск по картинке-> по id
+        let find = this.productItems.find(product => product.product_picture === image.src);
+        if (find) {
+            find.quantity++;
+            this.countGoods++;
+            this.amount += find.unite_price;
+            this._updateDropCart(find);
+        } else {
+            let product = {
+                id_product: ++this.curID,
+                product_picture: image.src,
+                product_alt: image.alt,
+                unite_price: parseInt(price),
+                product_name: name,
+                quantity: 1
+            };
+            $("div.drop-all").remove();
+            this.productItems.push(product);
+            this.countGoods += product.quantity;
+            this.amount += product.unite_price;
+            this._renderDropItem(product);
+            this._renderDropBtn();
+        }
+        this._renderDropSum();
+    }
+
+    addBigProduct(element) {
+        let name = element.delegateTarget.children[2].innerHTML;
+        let price = element.delegateTarget.children[6].innerHTML;
+        let image = element.delegateTarget.previousElementSibling.children[1].children[1].firstChild;
+        let quantity = element.delegateTarget.children[8].children[2].children[1].innerHTML;
+
+        let find = this.productItems.find(product => product.product_picture === image.src);
+        if (find) {
+            find.quantity+=+quantity;
+            this.countGoods+=+quantity;
+            this.amount += (find.unite_price*+quantity);
+            this._updateDropCart(find);
+        } else {
+            let product = {
+                id_product: ++this.curID,
+                product_picture: image.src,
+                product_alt: image.alt,
+                unite_price: parseInt(price),
+                product_name: name,
+                quantity: parseInt(quantity)
+            };
+            $("div.drop-all").remove();
+            this.productItems.push(product);
+            this.countGoods += product.quantity;
+            this.amount += (product.unite_price * product.quantity);
+            this._renderDropItem(product);
+            this._renderDropBtn();
+        }
+        this._renderDropSum();
+    }
+}
