@@ -20,4 +20,19 @@ class BrowserFactory extends NewAbstractFactory{
         return new BrowserLabel();
     }
 
+    public function init() {
+        $ModalFormName = 'Browser';
+        $type = 'Webkit'; //IExplorer
+        
+        $result = $this->createModalForm($ModalFormName, $type);
+        if ($result === 1) {
+            $buttonName = 'MacOSButton';
+            $resultTwo = $this->createButton($buttonName);
+            $this->createLabel();
+            if ($resultTwo === 1) {
+                echo 'You can see the random image!';
+            }
+        }
+    }
+
 }

@@ -16,4 +16,17 @@ class MacOSFactory extends NewAbstractFactory{
         return new MacOSLabel();
     }
 
+    public function init() {
+        $ModalFormName = 'MacOS';
+        $result = $this->createModalForm($ModalFormName);
+        if ($result === 1) {
+            $buttonName = 'MacOSButton';
+            $resultTwo = $this->createButton($buttonName);
+            $this->createLabel();
+            if ($resultTwo === 1) {
+                echo 'You can see the random image!';
+            }
+        }
+    }
+
 }
