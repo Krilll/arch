@@ -14,14 +14,14 @@ if (isset($_GET['id'])) {
 
 switch ($_GET['c'])
 {
-	case 'page':
-		$controller = new C_Page();
-		break;
+  case 'page':
+	$controller = new C_Page();
+	break;
   case 'user':
         $controller = new C_User();
         break;
-	default:
-		$controller = new C_Page();
+  default:
+	$controller = new C_Page();
 }
 
 $controller->Request($action, $id);
